@@ -37,12 +37,12 @@ func main() {
 
 	router := gin.Default() // Создание общего роутера
 
-	router.StaticFS("/js/", gin.Dir("./web/js", false))
-	router.StaticFS("/css/", gin.Dir("./web/css", false))
-	router.StaticFile("/", "./web/index.html")
-	router.StaticFile("/index.html", "./web/index.html")
-	router.StaticFile("/login.html", "./web/login.html")
-	router.StaticFile("/favicon.ico", "./web/favicon.ico")
+	router.StaticFS("/js/", gin.Dir(fmt.Sprintf("%s/js", cfg.WebDir), false))
+	router.StaticFS("/css/", gin.Dir(fmt.Sprintf("%s/css", cfg.WebDir), false))
+	router.StaticFile("/", fmt.Sprintf("%s/index.html", cfg.WebDir))
+	router.StaticFile("/index.html", fmt.Sprintf("%s/index.html", cfg.WebDir))
+	router.StaticFile("/login.html", fmt.Sprintf("%s/login.html", cfg.WebDir))
+	router.StaticFile("/favicon.ico", fmt.Sprintf("%s/favicon.ico", cfg.WebDir))
 
 	apiHandler := api.NewApiHandler(cfg, &db) // создание API интерфейса
 	apiRouter := router.Group("/api")         // роутер для API приложения
