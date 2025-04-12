@@ -49,6 +49,6 @@ go test ./tests
 ## Запуск docker конейтнера
 ```docker
 docker build --tag todo-final-app:v1 .
-docker run --env-file=.env -d -p 7550:7550 todo-final-app:v1
+docker run --env-file=.env -d -p 7540:7540 todo-final-app:v1
 ```
 Адрес приложения ```http://localhost:7540/```
