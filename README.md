@@ -17,8 +17,6 @@
 ```env
 TODO_PORT=7540
 TODO_WEB_DIR=./web
-TODO_INDEX_FILE_NAME=index.html
-TODO_ALLOWED_EXT_FILES=.html,.js,.css,.ico
 TODO_DBFILE=scheduler.db
 TODO_PASSWORD=12345
 TODO_JWT_SECRET=jwt_secret_string
