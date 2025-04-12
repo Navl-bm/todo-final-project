@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Navl-bm/todo-final-project/utils"
+	"github.com/Navl-bm/todo-final-project/pkg/dates"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,7 @@ func (h *ApiHandler) NextDate(ctx *gin.Context) {
 		ctx.Data(http.StatusBadRequest, "text/html", []byte("repeat required"))
 		return
 	}
-	nextdate, err := utils.NextDate(now, dstart, repeat)
+	nextdate, err := dates.NextDate(now, dstart, repeat)
 	if err != nil {
 		ctx.Data(http.StatusBadRequest, "text/html", []byte(err.Error()))
 		return

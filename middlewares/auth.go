@@ -5,7 +5,7 @@ import (
 
 	"github.com/Navl-bm/todo-final-project/errors"
 	"github.com/Navl-bm/todo-final-project/models"
-	"github.com/Navl-bm/todo-final-project/utils"
+	"github.com/Navl-bm/todo-final-project/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -36,7 +36,7 @@ func (m *Middleware) CheckAuthToken(ctx *gin.Context) {
 		return
 	}
 
-	if claims.PasswordHash != utils.GetSha256Password(m.Config.UserPassword) {
+	if claims.PasswordHash != auth.GetSha256Password(m.Config.UserPassword) {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": errors.ErrUnauthorized.Error()})
 		return
 	}

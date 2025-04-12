@@ -23,13 +23,13 @@ const (
 
 // DB метод для взаимодействия с базой данных
 type DB struct {
-	db  *sql.DB
+	DB  *sql.DB
 	cfg *config.Config
 }
 
 // NewDataBase создает новый экземпляр базы данных
 func NewDataBase(cfg *config.Config) DB {
-	return DB{db: nil, cfg: cfg}
+	return DB{DB: nil, cfg: cfg}
 }
 
 // Init выполняет подключение к базе данных
@@ -41,13 +41,13 @@ func (db *DB) Init() error {
 		install = true
 	}
 
-	db.db, err = sql.Open("sqlite", db.cfg.DBName)
+	db.DB, err = sql.Open("sqlite", db.cfg.DBName)
 	if err != nil {
 		return err
 	}
 
 	if install {
-		_, err := db.db.Exec(`
+		_, err := db.DB.Exec(`
 		CREATE TABLE scheduler (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		date CHAR(8) NOT NULL DEFAULT "",
@@ -61,7 +61,7 @@ func (db *DB) Init() error {
 			return err
 		}
 
-		_, err = db.db.Exec(`CREATE INDEX idx_scheduler_date ON scheduler (date)`)
+		_, err = db.DB.Exec(`CREATE INDEX idx_scheduler_date ON scheduler (date)`)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func (db *DB) AddTask(task *models.Task) (int64, error) {
 	var id int64
 
 	query := `INSERT INTO scheduler (date, title, comment, repeat) VALUES (:date, :title, :comment, :repeat)`
-	res, err := db.db.Exec(query,
+	res, err := db.DB.Exec(query,
 		sql.Named("date", task.Date),
 		sql.Named("title", task.Title),
 		sql.Named("comment", task.Comment),
@@ -101,7 +101,7 @@ func (db *DB) GetTasks(limit int, search string, searchType int) (*models.TasksL
 		query = `SELECT id, date, title, comment, repeat FROM scheduler WHERE date = :date LIMIT :limit `
 	}
 
-	rows, err := db.db.Query(query,
+	rows, err := db.DB.Query(query,
 		sql.Named("limit", limit),
 		sql.Named("search", fmt.Sprintf("%c%s%c", '%', search, '%')),
 		sql.Named("date", search),
@@ -121,6 +121,10 @@ func (db *DB) GetTasks(limit int, search string, searchType int) (*models.TasksL
 		}
 		taskList = append(taskList, &task)
 	}
+	if err := rows.Err(); err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
 	if taskList == nil {
 		taskList = []*models.Task{}
@@ -134,7 +138,7 @@ func (db *DB) GetTask(id int) (*models.Task, error) {
 
 	query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE id = :id`
 
-	row := db.db.QueryRow(query,
+	row := db.DB.QueryRow(query,
 		sql.Named("id", id),
 	)
 	task := models.Task{}
@@ -154,7 +158,7 @@ func (db *DB) UpdateTask(task *models.Task) error {
 
 	query := `UPDATE scheduler SET date = :date, title = :title, comment = :comment, repeat = :repeat WHERE id = :id`
 
-	res, err := db.db.Exec(query,
+	res, err := db.DB.Exec(query,
 		sql.Named("id", task.ID),
 		sql.Named("date", task.Date),
 		sql.Named("title", task.Title),
@@ -183,7 +187,7 @@ func (db *DB) DeleteTask(id int) error {
 
 	query := `DELETE FROM scheduler WHERE id = :id`
 
-	res, err := db.db.Exec(query,
+	res, err := db.DB.Exec(query,
 		sql.Named("id", id),
 	)
 

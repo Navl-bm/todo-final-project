@@ -3,27 +3,24 @@
 При выполнении повторяющейся задачи она автоматически переносится на следующую ближайшую дату в соответствии с настойками повтора выполнения
 
 ## Выполненные дополнительные задачи
-- [x]  Настройка порта сервера с помощью переменных окружения (`PORT`)
-- [x]  Настройка пути к БД с помощью переменных окружения (`DBFILE`)
+- [x]  Настройка порта сервера с помощью переменных окружения (`TODO_PORT`)
+- [x]  Настройка пути к БД с помощью переменных окружения (`TODO_DBFILE`)
 - [x]  Поиск ближайшей даты в случае повтора по неделе и месяцу
 - [x]  Поиск задач по заданному фильтру
-- [x]  Аутентификация пользователя (`PASSWORD` и `JWT_SECRET`)
-- [x]  Управление каталога фронтенда через переменные окружения (`WEB_DIR`)
-- [x]  Фильтрация запросов для файлов и страниц с помощью переменных окружения (`ALLOWED_EXT_FILES`)
-- [x]  Возможность изменения имени стартовой страницы приложения с помощью пременных окружения (`INDEX_FILE_NAME`)
+- [x]  Аутентификация пользователя (`TODO_PASSWORD` и `TODO_JWT_SECRET`)
 - [x]  Сборка docker контейнера
 
 ## Локальный запуск
 ### Пример файла .env  
 
 ```env
-PORT=7540
-WEB_DIR=./web
-INDEX_FILE_NAME=index.html
-ALLOWED_EXT_FILES=.html,.js,.css,.ico
-DBFILE=scheduler.db
-PASSWORD=12345
-JWT_SECRET=jwt_secret_string
+TODO_PORT=7540
+TODO_WEB_DIR=./web
+TODO_INDEX_FILE_NAME=index.html
+TODO_ALLOWED_EXT_FILES=.html,.js,.css,.ico
+TODO_DBFILE=scheduler.db
+TODO_PASSWORD=12345
+TODO_JWT_SECRET=jwt_secret_string
 ```
 
 ### Запуск приложения
@@ -53,6 +50,6 @@ go test ./tests
 ## Запуск docker конейтнера
 ```docker
 docker build --tag todo-final-app:v1 .
-docker run -d -p 7540:7540 todo-final-app:v1
+docker run --env-file=.env -d -p 7550:7550 todo-final-app:v1
 ```
 Адрес приложения ```http://localhost:7540/```

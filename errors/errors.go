@@ -7,8 +7,6 @@ import (
 )
 
 var (
-	ErrFileNotFound        = errors.New("файл не найден")
-	ErrAccessDenied        = errors.New("доступ запрещен")
 	ErrBadRepeatFormat     = errors.New("некорректный формат повторения")
 	ErrBadTime             = errors.New("некорректный формат времени")
 	ErrBadJSON             = errors.New("некорректный формат JSON")

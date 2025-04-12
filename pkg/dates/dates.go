@@ -1,4 +1,4 @@
-package utils
+package dates
 
 import (
 	"strconv"
@@ -10,10 +10,8 @@ import (
 
 const DateFormat = "20060102"
 
-func AfterNow(a, b time.Time) bool {
-	return a.Compare(b) == 1
-}
-
+// getMonthOfYear возвращает значение типа time.Month
+// в зависимости от переданного числового значения месяца
 func getMonthOfYear(month int) (time.Month, bool) {
 	switch month {
 	case 1:
@@ -44,6 +42,8 @@ func getMonthOfYear(month int) (time.Month, bool) {
 	return 0, false
 }
 
+// getDayOfWeek возвращает значение типа time.Weekday
+// в зависимости от переданного числового значения дня недели
 func getDayOfWeek(day int) (time.Weekday, bool) {
 	switch day {
 	case 1:
@@ -64,6 +64,8 @@ func getDayOfWeek(day int) (time.Weekday, bool) {
 	return 0, false
 }
 
+// nextDay возвращает ближайшую дату при выбранном повторении по дням
+// формат d <число>
 func nextDay(parts []string, date time.Time, now time.Time) (string, error) {
 	if len(parts) != 2 {
 		return "", errors.ErrBadRepeatFormat
@@ -77,12 +79,15 @@ func nextDay(parts []string, date time.Time, now time.Time) (string, error) {
 	}
 	for {
 		date = date.AddDate(0, 0, interval)
-		if AfterNow(date, now) {
+
+		if date.After(now) {
 			return date.Format(DateFormat), nil
 		}
 	}
 }
 
+// nextWeek возвращает дату при выбранном повторении по неделям
+// формат w <через запятую от 1 до 7>
 func nextWeek(parts []string, date time.Time, now time.Time) (string, error) {
 	if len(parts) != 2 {
 		return "", errors.ErrBadRepeatFormat
@@ -105,7 +110,7 @@ func nextWeek(parts []string, date time.Time, now time.Time) (string, error) {
 	for {
 		date = date.AddDate(0, 0, 1)
 
-		if AfterNow(date, now) {
+		if date.After(now) {
 			for _, v := range days {
 				if date.Weekday() == v {
 					return date.Format(DateFormat), nil
@@ -115,6 +120,72 @@ func nextWeek(parts []string, date time.Time, now time.Time) (string, error) {
 	}
 }
 
+// findNextMonthDay вспомогательная функция для поиска следующего месяца и дня
+func findNextMonthDay(monthExists bool, date, now time.Time, months []time.Month, days []int) (string, error) {
+	// получаем дату и возвращаем первый день следующего месяца
+	nextMonthStart := func(date time.Time) time.Time {
+		return time.Date(date.Year(), date.Month()+1, 1, 0, 0, 0, 0, time.UTC)
+	}
+
+	// проверка даты на соответствие условию повторения по дню
+	isDayMatch := func(date time.Time, day int) bool {
+		switch day {
+		case -1:
+			return date.AddDate(0, 0, 1).Month() == nextMonthStart(date).Month()
+		case -2:
+			return date.AddDate(0, 0, 2).Month() == nextMonthStart(date).Month()
+		default:
+			return date.Day() == day
+		}
+	}
+
+	// проверка даты на соответствие условию повторения по месяцу
+	checkMonth := func(date time.Time) bool {
+		if !monthExists {
+			return true
+		}
+		for _, m := range months {
+			if date.Month() == m {
+				return true
+			}
+		}
+		return false
+	}
+
+	for {
+		// пока дата не превысит(станет равной текущему месяцу) к текущей дате прибавляем месяц
+		if !date.After(now) {
+			date = nextMonthStart(date)
+			continue
+		}
+
+		// проверка месяца на соответствие условию
+		if checkMonth(date) {
+			currentDate := date
+			for {
+				// проходим по всем дням условия и проверяем на соответствие
+				for _, day := range days {
+					if isDayMatch(currentDate, day) {
+						return currentDate.Format(DateFormat), nil
+					}
+				}
+				currentDate = currentDate.AddDate(0, 0, 1)
+
+				// если дата перешла в следующий месяц выходим из цикла
+				if currentDate.Month() != date.Month() {
+					break
+				}
+			}
+		}
+
+		// переходим к следующему месяцу, т.к. условия не выполнены
+		date = nextMonthStart(date)
+	}
+}
+
+// nextMonth возвращает ближайщую дату при повторении по месяцам
+// формат m <через запятую от 1 до 31, -1, -2> [через запятую от 1 до 12]
+// (-1) - последний день месяца, (-2) - предпоследний день месяца
 func nextMonth(parts []string, date time.Time, now time.Time) (string, error) {
 	if len(parts) > 3 || len(parts) == 1 {
 		return "", errors.ErrBadRepeatFormat
@@ -156,60 +227,29 @@ func nextMonth(parts []string, date time.Time, now time.Time) (string, error) {
 		}
 	}
 
-	date = date.AddDate(0, 0, 1)
-
-	if monthExists {
-		for {
-			if AfterNow(date, now) {
-				for _, m := range month {
-					if date.Month() == m {
-						for {
-							for _, v := range days {
-								if v == -1 && date.AddDate(0, 0, 1).Month() == time.Date(date.Year(), date.Month()+1, 1, 0, 0, 0, 0, time.UTC).Month() {
-									return date.Format(DateFormat), nil
-								} else if v == -2 && date.AddDate(0, 0, 2).Month() == time.Date(date.Year(), date.Month()+1, 1, 0, 0, 0, 0, time.UTC).Month() {
-									return date.Format(DateFormat), nil
-								} else if date.Day() == v {
-									return date.Format(DateFormat), nil
-								}
-							}
-							date = date.AddDate(0, 0, 1)
-						}
-					}
-				}
-			}
-			date = time.Date(date.Year(), date.Month()+1, 1, 0, 0, 0, 0, time.UTC)
-		}
-	} else {
-		for {
-			if AfterNow(date, now) {
-				for _, v := range days {
-					if v == -2 && date.AddDate(0, 0, 2).Month() == time.Date(date.Year(), date.Month()+1, 1, 0, 0, 0, 0, time.UTC).Month() {
-						return date.Format(DateFormat), nil
-					} else if v == -1 && date.AddDate(0, 0, 1).Month() == time.Date(date.Year(), date.Month()+1, 1, 0, 0, 0, 0, time.UTC).Month() {
-						return date.Format(DateFormat), nil
-					} else if date.Day() == v {
-						return date.Format(DateFormat), nil
-					}
-				}
-			}
-			date = date.AddDate(0, 0, 1)
-		}
+	nextDate, err := findNextMonthDay(monthExists, date, now, month, days)
+	if err != nil {
+		return "", err
 	}
+
+	return nextDate, nil
 }
 
+// nextYear возвращает ближайщую дату при повторении по годам
+// формат y
 func nextYear(parts []string, date time.Time, now time.Time) (string, error) {
 	if len(parts) != 1 {
 		return "", errors.ErrBadRepeatFormat
 	}
 	for {
 		date = date.AddDate(1, 0, 0)
-		if AfterNow(date, now) {
+		if date.After(now) {
 			return date.Format(DateFormat), nil
 		}
 	}
 }
 
+// NextDate определяет какому типу соответствует правило повторения
 func NextDate(dnow string, dstart string, repeat string) (string, error) {
 	if repeat == "" {
 		return "", errors.ErrBadRepeatFormat

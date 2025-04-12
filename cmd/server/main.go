@@ -6,7 +6,6 @@ import (
 
 	"github.com/Navl-bm/todo-final-project/config"
 	"github.com/Navl-bm/todo-final-project/database"
-	"github.com/Navl-bm/todo-final-project/handlers"
 	"github.com/Navl-bm/todo-final-project/handlers/api"
 	"github.com/Navl-bm/todo-final-project/middlewares"
 	"github.com/gin-gonic/gin"
@@ -30,19 +29,20 @@ func main() {
 	// Инициализация базы данных
 	db := database.NewDataBase(cfg)
 	err = db.Init()
+	defer db.DB.Close()
+
 	if err != nil {
 		log.Fatalf("ошибка подключения к базе данных: %v", err)
 	}
 
 	router := gin.Default() // Создание общего роутера
 
-	fileHandler := handlers.NewFilesHandler(cfg) // Роутер для отправки файлов на клиент
-	router.GET("/", fileHandler.Get)
-	router.GET("/index.html", fileHandler.Get)
-	router.GET("/login.html", fileHandler.Get)
-	router.GET("/js/*file", fileHandler.Get)
-	router.GET("/css/*file", fileHandler.Get)
-	router.GET("/favicon.ico", fileHandler.Get)
+	router.StaticFS("/js/", gin.Dir("./web/js", false))
+	router.StaticFS("/css/", gin.Dir("./web/css", false))
+	router.StaticFile("/", "./web/index.html")
+	router.StaticFile("/index.html", "./web/index.html")
+	router.StaticFile("/login.html", "./web/login.html")
+	router.StaticFile("/favicon.ico", "./web/favicon.ico")
 
 	apiHandler := api.NewApiHandler(cfg, &db) // создание API интерфейса
 	apiRouter := router.Group("/api")         // роутер для API приложения

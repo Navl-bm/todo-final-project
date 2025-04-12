@@ -5,13 +5,13 @@ package config
 import "github.com/caarlos0/env/v9"
 
 type Config struct {
-	ServerPort      uint     `env:"PORT" envDefault:"7540"`
-	WebDir          string   `env:"WEB_DIR" envDefault:"./web"`
-	IndexFileName   string   `env:"INDEX_FILE_NAME" envDefault:"index.html"`
-	AllowedExtFiles []string `env:"ALLOWED_EXT_FILES" envDefault:".html,.js,.css,.ico"`
-	DBName          string   `env:"DBFILE" envDefault:"scheduler.db"`
-	UserPassword    string   `env:"PASSWORD" envDefault:""`
-	JWTSecret       string   `env:"JWT_SECRET" envDefault:"jwt_secret_string"`
+	ServerPort      uint     `env:"TODO_PORT" envDefault:"7540"`
+	WebDir          string   `env:"TODO_WEB_DIR" envDefault:"./web"`
+	IndexFileName   string   `env:"TODO_INDEX_FILE_NAME" envDefault:"index.html"`
+	AllowedExtFiles []string `env:"TODO_ALLOWED_EXT_FILES" envDefault:".html,.js,.css,.ico"`
+	DBName          string   `env:"TODO_DBFILE" envDefault:"scheduler.db"`
+	UserPassword    string   `env:"TODO_PASSWORD" envDefault:""`
+	JWTSecret       string   `env:"TODO_JWT_SECRET" envDefault:"jwt_secret_string"`
 }
 
 // Load загружает данные из переменных окружения в структуру Config

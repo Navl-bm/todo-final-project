@@ -6,7 +6,7 @@ import (
 
 	"github.com/Navl-bm/todo-final-project/errors"
 	"github.com/Navl-bm/todo-final-project/models"
-	"github.com/Navl-bm/todo-final-project/utils"
+	"github.com/Navl-bm/todo-final-project/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -27,7 +27,7 @@ func (h *ApiHandler) SignIn(ctx *gin.Context) {
 	}
 
 	tokenData := jwt.NewWithClaims(jwt.SigningMethodHS256, models.JWTToken{
-		PasswordHash: utils.GetSha256Password(h.Config.UserPassword),
+		PasswordHash: auth.GetSha256Password(h.Config.UserPassword),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer: "todo-final",
 		},

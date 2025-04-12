@@ -9,7 +9,7 @@ import (
 	"github.com/Navl-bm/todo-final-project/database"
 	"github.com/Navl-bm/todo-final-project/errors"
 	"github.com/Navl-bm/todo-final-project/models"
-	"github.com/Navl-bm/todo-final-project/utils"
+	"github.com/Navl-bm/todo-final-project/pkg/dates"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,24 +22,24 @@ func checkTaskForErrors(task *models.Task) (models.Task, error) {
 	}
 
 	if task.Date == "" {
-		task.Date = now.Format(utils.DateFormat)
+		task.Date = now.Format(dates.DateFormat)
 	}
 
-	date, err := time.Parse(utils.DateFormat, task.Date)
+	date, err := time.Parse(dates.DateFormat, task.Date)
 	if err != nil {
 		return models.Task{}, errors.ErrBadTime
 
 	}
 
 	if task.Repeat != "" {
-		_, err = utils.NextDate(now.Format(utils.DateFormat), task.Date, task.Repeat)
+		_, err = dates.NextDate(now.Format(dates.DateFormat), task.Date, task.Repeat)
 		if err != nil {
 			return models.Task{}, err
 		}
 	}
 
-	if !utils.AfterNow(date, now) {
-		task.Date = now.Format(utils.DateFormat)
+	if !date.After(now) {
+		task.Date = now.Format(dates.DateFormat)
 	}
 
 	return *task, nil
@@ -176,7 +176,7 @@ func (h *ApiHandler) DoneTask(ctx *gin.Context) {
 	}
 
 	if task.Repeat != "" {
-		task.Date, err = utils.NextDate(time.Now().Format(utils.DateFormat), task.Date, task.Repeat)
+		task.Date, err = dates.NextDate(time.Now().Format(dates.DateFormat), task.Date, task.Repeat)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": errors.ErrBadRepeatFormat.Error()})
 			return
@@ -188,15 +188,16 @@ func (h *ApiHandler) DoneTask(ctx *gin.Context) {
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{})
-	} else {
-		err = h.DB.DeleteTask(id)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": errors.ErrTaskNotFound.Error()})
-			return
-		}
-
-		ctx.JSON(http.StatusOK, gin.H{})
+		return
 	}
+
+	err = h.DB.DeleteTask(id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": errors.ErrTaskNotFound.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{})
 }
 
 // DeletTask обработчик для удаления задачи
